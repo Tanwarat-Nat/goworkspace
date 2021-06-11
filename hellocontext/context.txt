@@ -1,0 +1,52 @@
+เราจะมาคุยกันในเรื่องของ context เป็น package หนึ่งใน standard library ของ go ทำไมเราต้องมาคุยในเรื่องของ context ด้วย เราจำเป็นจะต้องรู้ จำเป็นต้องใช้ เพราะว่าการเชื่อต่อกับ mongodb โดยใช้ mongodb driver เป็น officel driver ตรงนี้ เราจำเป็นต้องใช้ context ด้วย ยกตัวอย่าง context.Background และทั้งหมดก็จะ wrap ไปไว้ที่ context.WithTimeout เราจำเป็นจะต้องรู้ เราจำเป็นจะต้องเข้าใจตรงนี้ เราจะไม่เขียนโค้ดมั่วๆ พอเราเข้าใจแล้วเราค่อยไปต่อ database กัน
+
+Actor --> (dispatch) --> App --> (dispatch) --> Database
+Database --> (return) --> App --> (return) --> Actor
+
+เราจะมี Actor อันนึงไปเรียก(dispatch) application ของเรา app ของเราเรียก(dispatch) database แล้ว database ก็ return กลับมาแล้ว app ก็ return กลับไปทุกอย่างโอเค
+แต่ว่าถ้าระหว่างการเรียก client บอกว่า shut down คอม ปิดคอม ปิด Browser ไม่สนใจผลลัพธ์ที่จะออกมาละ เขารีบเขาไม่อยู่รอจนจบจะเกิดอะไรขึ้น มันก็จะเกิดแบบนี้ 
+
+Actor --> (dispatch) --> App --> (dispatch) --> Database
+Shut down/cancel(Actor leave)
+Database --> (return result not error) --> XXX App ??? --> (return..) --> XXX ????... Actor leave
+
+พอตรงนี้มันถูก cancel ตรงนี้ leave ออกไปแล้ว database return กลับมาก็ไม่รู้จะยังไงต่อ แล้ว App ก็ไม่จำเป็นต้องส่งไป ถึงแม้ตรงนี้มันจะไม่ error ไม่ผิดก็ตาม แต่ว่า result ตรงนี้ก็เปล่าประโยชน์ result ตรงนี้ result ที่เหลือตรงนี้ในการ calculate database กับ application ของเราตรงนี้ จะดีกว่ามั้ยที่เราจะหยุดการทำทุกอย่างเลย ในเมื่อเรารู้แล้วว่า Actor ของเราไม่ต้องการผลลัพธ์แล้ว สุดท้ายเราจะได้ solution แบบนี้ 
+
+Actor --> (dispatch) --> App --> (dispatch) --> Database
+Shut down/cancel(Actor leave)/ Actor stop execution Then stop calculation
+Database --> XXX(stop calculation and cancel) --> App
+
+พอ Actor stop execution เขาหยุดการทำงานของเขาแล้ว เราก้ไม่ทำการ calculate ต่อ เราก็จะ cancel ไปเรื่อยๆ
+สมมติระหว่าง application กับ database มีฟังก์ชั่นอย่างอื่นเข้ามาต่อไปเยอะแยะ แล้วฟังก์ชั่นตรงนั้นมัน expensive มาก เราต้องการจะตัด cut cross ลดการใช้ resource ทั้งหมดตรงนั้น พอ cancel ปุ๊ป function ที่ถูกเรียกต่อๆกันไปควรจะ cancel ควรจะหยุดการทำงานด้วย ซึ่งจริงๆแล้วเราไม่จำเป็นจะต้องใช้ context เข้ามาช่วยในการแก้ปัญหานี้ก็ได้
+แต่ว่ามันเป็น practice นึงที่ google เขาใช้กัน เข้ามาที่ blog golang.org มาดู context เขาอธิบายคร่าวๆไว้ว่า
+ใน request นึงที่เข้ามา มันอาจจะมี goroutine หลายตัวทำงานพร้อมกันซึ่ง goroutine หลายๆตัวพวกนั้นอาจจำเป็นจะต้องใช้ data ร่วมกันเช่น พวก user ID (identity of end user), authorization token, request deadline ต่างๆพวกนี้ application logic อาจจะใช้ส่วนนี้ ถ้าเราไม่ใช้ context เราก้ต้อง pass เราก้ต้องสร้าง container อะไรส่งเข้าไปกันเยอะแยะไปหมด เหมือนที่เรายกตัวอย่างใน diagram ตรงนี้
+ถ้า request ถูก cancel หรือว่ามัน time out แล้ว ทุกอย่างไม่ควร rest result ไม่ควรจะเสียตรงนี้ ให้หยุดการทำงานตรงนี้ไปเลย
+
+สรุป
+1. request ทีเข้ามามันควรจะ create context คือตอนที่เวลา request เข้ามาแล้วเราสร้าง
+context แล้วเราก็ส่งให้ function 
+
+client เป็นคน control การ cancel (outgoing client request) 
+client outgoing request เข้ามาหา application ของเรา
+
+the context control cancelation
+ในนี้(Actor)อาจจะไม่ใช่คน อาจจะไม่ใช้browser อาจจะเป็น application ของเราที่เราเขียนก็ได้
+
+incoming server request the context is cancel when the client close
+คือ context จะ cancel ถ้า connection ที่วิ่งเข้ามามัน close
+
+คำแนะนำ
+อย่าใช้ context ภายใน struct ให้ทำการ past context ไปใน function เลย
+func DoSomething(ctx context.Context, arg Arg) error{
+    // .. use ctx ...
+}
+
+อย่า past nil context ถ้าไม่แน่ใจให้ใช้ context.TODO
+
+context value ที่เราทำมาคลิปล่าสุด ที่ใส่ a = 1, b = 2 เวลาจะใช้เขาบอกว่า 
+ควรจะใช้เป็นเฉพาะส่วนของ request scope เท่าน้ัน เพื่อในการส่งผ่านข้อมูลระหว่าง
+process ต่างๆ และ api ไม่ใช่ว่าเอาไว้เพื่อไปส่งข้อมูลเข้าไปคล้ายๆแบบ optinal parameter
+เข้าไปหา function แบบนี้ไม่เอา
+
+context เดียวกันเป็น concorrency case อย่างที่ได้เห็นผ่านหูผ่านตา เขาก็จะมี log unlog ไว้
+ก็ไม่ว่าจะกี่ goroutine เข้ามาก็ไม่มีปัญหาอะไร

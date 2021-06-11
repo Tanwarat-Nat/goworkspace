@@ -1,0 +1,192 @@
+$ go version
+
+& ls
+$ cd ..
+$ mkdir
+$ code .
+Lenovo@DESKTOP-A96UHVC C:\Users\Lenovo\Desktop\helloapp
+$ mv quote .. ย้ายออกไปนอก helloapp ก็จะไปตกอยู่หน้า Desktop
+
+set environment
+$ sysdm.cpl
+$ go env -w GO111MODULE=auto ลองใช้แบบนี้ ทำได้แฮะ ใช้ =on ก็ได้นะ
+$ export GO111MODULE=auto/on/off
+GO111MODULE=auto แปลว่า ถ้าเราทำงานอยู่ใน GOPATH เราจะใช้ go mod ไม่ได้ครับ
+ถ้าอยากใช้ก็ต้องไปทำนอก GOPATH แต่ต้องอยู่ใน project ที่มีไฟล์ go.mod อยู่
+หรือหักดิบเข้าไปที่ project เดิมของเราเลย แล้วกำหนดค่า GO111MODULE=on
+ซึ่งถ้าเราใช้ module แล้ว go จะไม่ใช้ของที่อยู่ใน vender แล้ว
+
+$ go fmt hello.go
+$ gofmt helloworld # จะแสดงผลที่ terminal
+$ gofmt -w helloworld # จะแสดงผลที่ standard output
+
+$ echo %GOPATH%
+$ go env | grep GOPATH
+
+$ go help build
+usage: go build [-o output] [build flags] [packages]
+$ go build -o hw.exe helloworld
+$ go build -o hw.exe main.go
+$ .\hw.exe
+
+run multiple Go files at the same time on
+$ go run ./cmd/web/.
+
+Debugger -> หยุดการทำงานของโปรแกรมทีละบรรทัด
+1.Ctrl + Shift + P
+2.Go: Install/Update Tools
+3.{
+            "name": "Launch GO",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${fileDirname}",
+            "env": {},
+            "args": []
+        }
+
+git
+$ ls -la ดูที่เคยลง git ไว้
+$ rm - rf .git ลบ git ที่เคยลงไว้
+
+
+$ mkdir -p .\src\prime   สร้าง floder
+$ touch .\src\prime\prime.go    สร้าง file
+
+- copy file 
+- duble click build new file 
+- paste file copy
+- Shift + Alt + F -> format (กดดาร์คข้อความก่อน)
+- copy result at terminal
+- and click at new file
+- Ctrl + Shift + p -> compare active file with clipbord
+
+สร้างไฟล์ todo.html
+แล้ว copy path ไปเปิดบน browser
+ทุกครั้งที่รัยใหม่ ให้รีเฟรชหน้าจอเบราว์เซอด้วย
+$ go run html_template > todo.html
+
+key shotcut
+- pkgm : package main and main function
+- fp : fmt.Println
+- tys : type name struct declaration
+- tyi : type name interface declaration
+- if : if statement
+- iferr : if err != nil
+- ctrl + enter : วิ่งมาบรรทัดไป
+- ctrl + / : คอมเม้นพร้อมกันหลายๆบรรทัด
+- ctrl + c : exit status
+- ctrl + Alt + Down(PgDn)
+- ctrl + Shift + Right(End)->
+-  ปล่อย ctrl กด shift ค้างไว้ + Left(Home) <-
+
+
+flag interface
+$ go run main.go -name Filicity
+[-name Filicity]
+
+$ go run main.go -name Filicity -age 1234
+[-name Filicity -age 1234]
+
+log process id เพื่อหาว่ารันที่พอร์ทไหน
+$ go run main.go
+544
+$ netstat -ano | grep 544(เลขเปลี่ยนได้)
+TCP		0.0.0.0:80	0.0.0.0:0	LISTENING 12544
+TCP 	[::]:80		[::]:0		LISTENING 12544
+
+
+Lenovo@DESKTOP-A96UHVC C:\Users\Lenovo\Desktop\goworkspace
+$ go test testing\helloworld
+
+มีหลายฟังก์ชั่นเทสในไฟล์เดียว ให้ใส่ -v เพื่อแสดงทุกเทส
+$ go test -v testing\helloworld
+
+มีไฟล์เทสหลายอัน อยากเทสแค่ไฟล์นี้ ให้ใส่ regular expression
+regular expression จะจับกับชื่อ function ไม่ใช่ชื่อไฟล์
+$ go test -v -run="TestAddComplex" testing/helloworld
+
+เทสแบบ coverage ให้ใส่ -cover จะแสดง % ที่เทสไปแล้วจากโค้ดทั้งหมด แต่แบบนี้จะดูยาก
+$ go test -cover testing\coneragrdemo
+
+การสร้างรายงานเทส cover ให้ทำตามลำดับเวลาจะเทส ไล่ตามนี้
+$ go test -cover -coverprofile cover.out testing\coneragrdemo
+$ go tool cover -html=cover.out
+
+ดูไฟล์ cover.out จะได้หน้าตารายงานที่อ่านไม่ค่อยรู้เรื่อง
+$ cat cover.out
+
+benchmark testing (.) คือ regular expression ทุกอัน
+$ go test -v -bench . testing\bench
+
+คำอธิบายการแสดงผล benchmark
+BenchmarkIsPrime-6         23384             54516 ns/op
+-6 : จำนวน thred ที่ run อยู่ใน os
+23384 : จำนวนรอบที่ run , b.N คือ 23384
+54516 ns/op : เอามาเฉลี่ยทั้งหมดได้ว่า 1 operation ใช้เวลาประมาณ 
+54516 nano second ในแต่ละ operation ที่ run
+
+ให้โชว์ memory allocation ด้วย
+$ go test -v -bench . -benchmem testing\bench
+
+ให้เทสแค่ฟังก์ชั่นที่ลงท้ายด้วย BenchmarkIsPrime อย่างเดียว ที่มี V2 V3 ด้วยไม่ใช่
+$ go test -bench BenchmarkIsPrime$ testing\bench
+
+สร้างกล่องสี่เหลี่ยมลูกบาศก์ให้รับ out put ที่ต้องการ ในตย. ls ดูแล้วจะได้ primecpu.out
+$ go test -bench BenchmarkIsPrime$ -cpuprofile=primecpu.out testing\bench
+
+แคทดูจะเห็นเป็นไบนารี่ที่อ่านไม่ออก มันก็คือตัวกล่องสี่เหลี่ยมลูกบาศก์นี่เอง
+$ cat primecpu.out
+
+ใช้ tool มาช่วยในการอ่านให้ output ออกมาเป็น text ก็จะเห็นผลว่าใช้ cpu ไปเท่านี้ๆๆ
+$ go tool pprof -text primecpu.out
+
+ถ้าเราต้องการให้ดูผ่านเว็ป ก้ทำแบบนี้ได้ จริงๆมันง่ายๆใช่มะ?5555
+- Make sure you installed Graphviz 
+- $ go tool pprof -svg primecpu.out
+- $ go tool pprof -web primecpu.out
+
+ตัวช่วย
+$go tool pprof --help
+
+ดูในเรื่องของ memory
+$ go test -bench BenchmarkIsPrime$ -memprofile=primemem.out testing\bench
+
+เทสใน stardar libary
+ก่อนที่จะ profile เรามาลองรันดูก่อนว่าเราเทสได้มั้ย
+$ go test -run TestRedirect_h1 net/http
+
+Ok run ผ่าน เราก้จะมาดู cpu profile กันก่อน
+$ go test -run TestRedirect_h1 -cpuprofile=httpcup.out net/http
+$ go tool pprof -web httpcup.out
+
+อ่า ไม่มีการใช้ cpu เลย เรามาดูใน mem กัน 
+$ go test -run TestRedirect_h1 -memprofile=httpmem.out net/http
+$ go tool pprof -web httpmem.out
+
+สร้างไฟล์ go.mod 
+$ go mod init example.com\helloapp แบบ local
+$ go mod init github.com\Tanwarat-Nat\quote แบบจาก github
+
+replace exmple.com/helloapp/eng => ./eng // ให้มันไปใช้ที่ local ไม่งั้นมันจะไปดึงที่ github
+
+add require เพิ่มใน go.mod ของไฟล์นั้นๆ
+$ go get github.com/Tanwarat-Nat/quote
+
+missing go.sum entry; to add it: ของไฟล์นั้นๆ
+$ go mod download github.com/Tanwarat-Nat/quote/v2
+
+Upgrade version
+$go get github.com\Tanwarat-Nat\quote@v0.1.0
+
+
+ดู go.mod ที่มีในไฟล์นั้นๆอยู่ตอนนี้
+$ go list -m all
+
+ลบ check sum dependecy ใน go.sum ที่ไม่ได้ใช้ในไฟลน์นั้นๆออก
+$ go mod tidy
+
+ดูว่ามีเวอร์ชั่นไหน avairable บ้าง
+$ go list -m -versions github.com/Tanwarat-Nat/quote
+
+

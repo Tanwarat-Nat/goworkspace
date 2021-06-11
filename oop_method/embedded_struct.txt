@@ -1,0 +1,25 @@
+เนื่องจาก golang ไม่มี concept ของ class จึงทำให้เทคนิคบางอย่างที่เกี่ยวข้องกับ class
+ไม่สามารถใช้ได้ในภาษา go อย่างเช่น inheritent ถ้าเป็นแบบภาษาอื่นก็โอเค
+class ลูก inherit มาจาก class พ่อแม่
+
+ถ้าเราจะแก้ไขปัญหาพวกนี้ แล้วต้องการเทคนิค inheritent เข้ามาช่วย ในภาษาโก เราก็มี
+บางอย่างที่คล้ายคลึงกันเหมือนกัน นั่นก็คือการ embedde struct ซึ่งมันจะแตกต่างจาก
+struct ภาษาอื่น
+
+ถ้าเราจะมี class อันนึงชื่อ person ใน js เราสามารถบอกได้ว่า
+class employee inherit มาจาก class person ได้
+ฉะนั้น employee ก็จะมี filed ทั้งหมดจากของ person
+
+แต่ว่าใน golang แทนที่เราจะ inherit เราจะ embedded person
+ไว้ใน struct employee ตรงนี้ พอเรา embedded แล้ว สิ่งที่มันจะเกิดขึ้น
+employee เข้าไปใช้ filed ของ person ได้แล้ว
+employee.name, employee.surname
+
+programmer ก็จะเอา employee มา embedded ใน filed ของมัน
+tester ก็เช่นเดียวกัน พอ embedded แล้วก็จะเข้าใช้ filed ของพวกนั้นได้
+
+สมมติว่าถ้าโปรแกรมเมอร์เรียก method ที่ชื่อว่า fullname()
+โปรแกรมเมอร์ก็จะหาว่า employee มี fullname() มั้ย ถ้าไม่มีมันก๋็จะ fail
+แต่ความเป็นจริงก็คือ fullname() ถูกสร้างมาจาก person อีกทีนึง
+ดังนั้นโปรแกรมเมอร์ก็สามารถ fullname() จาก employee ได้
+มันเหมือนกับทุกอย่างมันถูก โปรโมท มาที่นี้ ที่ๆเขา embedded มัน

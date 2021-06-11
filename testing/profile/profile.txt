@@ -1,0 +1,21 @@
+เราต้องการ profile package ตัวไหน
+เรามาดูเรื่อง network ดีกว่า เพราะเวลาเราสร้าง connection นู้นนี้นั่น เราจะได้เคลียใจจริงๆว่าการเปิดปิด connection อะไรมันใช้ resource กันมากน้อยขนาดไหน ยังไงจริงๆกันแน่
+เราจะไม่เทส benchmark เราจะเทสแค่รันครั้งเดียวพอ เราอยากรู้ว่าจะใช้ cpu ใช้ ram อะไรยังไงเท่าไหร่
+หรือจะใช้ gorutine ยังไงเท่าไหร่ก็ได้
+
+Go > src > net > http > request_test.go > outline > TestRedirect_h1
+ก่อนที่จะ profile เรามาลองรันดูก่อนว่าเราเทสได้มั้ย
+$ go test -run TestRedirect_h1 net/http
+Ok run ผ่าน เราก้จะมาดู cpu profile กันก่อน
+$ go test -run TestRedirect_h1 -cpuprofile=httpcup.out net/http
+โอเค ถ้ารันเป็นเว็ปเลย (รันเว็ปไม่เคยทำครั้งเดียวสำเร็จเลยยยยโอ้ยยย)
+$ go tool pprof -text httpcup.out
+$ go tool pprof -web httpcup.out
+
+อ่า ไม่มีการใช้ cpu เลย เรามาดูใน mem กัน
+$ go test -run TestRedirect_h1 -memprofile=httpmem.out net/http
+มาดูเป็นเว็ปกัน (อะฮะ ครั้งเดียวรันได้จร้าา บ้าบออออออ)
+$ go tool pprof -web httpmem.out
+
+
+

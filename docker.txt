@@ -1,0 +1,33 @@
+$ docker ps : ดูว่ามีอะไรรันอยู่บ้าง
+
+https://hub.docker.com/_/postgres
+
+docker pull an image : the Postgres image
+docker pull <image>:<tag>
+$ docker pull postgres:12-alpine
+$ docker images : ดู images ทั้งหมดที่มี
+$ docker rmi postgres:13-alpine : ต้องการลบ Remove  Docker Image(docker rmi ชื่อ-image-ที่ต้องการลบ:tag(ไม่มีก็ได้ แต่ของเรามีหลายเวอร์ไง))
+$ docker rmi 83b40f2726e5 : ต้องการลบ Remove  Docker Image(docker rmi ID-image-ที่ต้องการลบ)
+$ docker stop <container_name> : หยุดการทำงานบน docker hub
+$ docker rm <container_name> : ลบออกจาก docker hub
+
+start a container : to start a Postgres database server container
+docker run --name<container_name> -e<enviroment_variable> -d<image>:<tag>
+($ docker run --name postgres12 -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=postgres -d postgres:12-alpine)
+$ docker run --name postgres12 -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -d postgres:12-alpine
+
+port mapping : a docker container is run in a seperate virtual network which is difference from 
+the host network that's we on we cannot simply connect to the postgres server running on port 5432 
+of the container network unless we tell docker to create one kind of bridge between our localhost's network
+and the container's network:
+docker run --name<container_name> -e<enviroment_variable> -p<host_port:container:port> -d<image>:<tag>
+postgres server is ready
+
+Run command in container : connet to it
+docker exec -it<container_name_or_id><comand>[args]
+$ docker exec -it postgres12 psql -U postgres
+postgres=# select now();
+
+view container
+docker loqs<container_name_or_id>
+

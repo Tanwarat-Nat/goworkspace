@@ -1,0 +1,86 @@
+พระเอกที่อยู่เบื่องหลัง  dependency management system ในภาษาโก เป้าหมายเดียวของ
+go module ที่เกิดมาก็คือเพิ่มความคล่องตัวในการใช้ external dependency 
+
+ทบทวนคอนเซปเก่า gopath style
+เราจะมี gopath ของเราอยู่ภายใต้ source floder เราก็จะมี package1,2,3.. ว่ากันไป
+GOPATH
+    -PackageA
+    -PackageB
+    -PackageC
+
+กลับกันถ้าเป็นในทางของ gomodulr style
+gopath มันก็อยู่ของมันไป แล้ว packagea,b,c.. มันก็อยู่ภายใต้ gopath ตรงนี้ไป
+...
+    - GOPATH
+    - ModuleA
+        - pkg x v1.1
+        - pkg y
+        - pkg z
+    - ModuleB
+        - pkg x v1.2
+        - pkg y v2.3
+        - pkg z
+    - ModuleC
+        - pkg x v1.2
+        - pkg y v2.5
+        - pkg z
+
+แต่ว่า gomodule จะไม่อยู่ใน GOPATH จะไปอยู่ข้างนอก จะไปอยู่ตรงไหนก็ได้ ขอเพียงแค่
+ไม่อยู่ภายใต้ GOPATH และในแต่ละ module ก็จะประกอบไปด้วย package ต่างๆที่เขาต้องการใช้
+ใน moduleA ใช้ packagex,y,z และ moduleB ก็ใช้ packagex,y,z เหมือนกัน แต่ว่า
+moduleB ใช้ packagex v1.2 และใช้ packagey v2.3 แต่ใน moduleA packagey,z
+อาจจะเป็นเวอร์ชั่นล่าสุด ModuleC ก็เหมือนกัน package อื่นๆ ถ้าเราจะใช้ในเวอร์ชั่นที่ต่างกัน
+gomodule จะมาช่วยในการ manage เรื่องพวกนี้
+
+อันนี้ให้นึกภาพเป็น source control management (github,gitlab อะไรก็ได้)
+Respository
+    |1
+    |
+    |
+    |1..N
+Go module
+    |1
+    |
+    |
+    |1..N
+Go package
+    |1
+    |
+    |
+    |1..N
+Go source files(ใน floder เดียวกัน)
+
+สมมว่าเรามี Respository นึงใน Respository นี้จะมีกี่ Go module ก็ได้
+ในแต่ละ module จะมีกี่ Go package ก็ได้ และในแต่ละ package จะมีกี่ source file ก็ได้
+แต่ว่าต้องอยู่ใน floder เดียวกัน ภายใต้ Go package
+
+Semantic Versioning ก็คือการสร้างเวอร์ชั่น (http://semver.org/)
+
+v(major).(minor).(path) 
+-->major,minor,path Non negative integer and no leading zero
+
+    v0.1.0
+-->version นี้ส่วนมากเวลาเราเริ่มต้นโปรเจค เราต้องการพัฒนามันมีการเพิ่มลด api มันมีการ
+ปรับเปลี่ยน function อยู่ตลอดเวลา เราก็จะ stick อยู่ที่ development 0.1.0 ถ้าเรา
+develop เสร็จแล้ว เราต้องการจะ lease เป็นเวอร์ชั่น 1 อาจจะเป็น 1.0.0 ก็ได้แล้วค่อยพัฒาเป็น
+1.2.3 แบบนี้
+    v1.2.3
+    v1.5.0-rc1 (lable for pre-release)
+    .
+    .
+    v2.0.0
+คำถาม? เมื่อไหร่จะเปลี่ยนจากเวอร์ชั่น 1 เป็นเวอร์ชั่น 2 ไปเป็นเวอร์ชั่น 3 ในเคสของ major
+ตราบใดที่เราทำการเปลี่ยนแปลงโค้ด แล้วมันเกิดการ imcompatable ขึ้นเยอะๆ เช่น
+เรา re-name function , delete function อะไรพวกนี้ แล้ว api ก็คือ software ตัวอื่น
+ที่มา depence กับ module ที่เราเขียนตรงนี้เขาก็จะ fail เขาก็จะ compile ไม่ผ่าน
+ทุกครั้งที่เราเปลี่ยน critical chain แบบนี้เราก็จะมาเปลี่ยนที่ major version
+
+ส่วนถ้าเป็น minor อย่างเช่น 1.2 มาเป็น 1.5 อารมณ์แบบการเพิ่ม feature เข้ามา
+อาจจะเป็นการเพิ่ม function แต่ว่า function เก่าก็ยังอยู่ หมายความว่าใครที่ยังใช้
+v1.2.3 เวลาเขาอัปเกรดมาเป็น 1.5.0 โค้ดของเขาก็ยังไม่พัง เพราะว่า feature อันเก่า
+ของ v1.2.3 ก็ยังมีอยู่ใน v1.5.0 ตราบใดที่เราลบ feature 1.2 ออกไปเนี่ย มันก็จะต้องขึ้น
+เป็น major version ใหม่ บอกว่าไม่มี feature แบบนี้เราไม่ continune feature แบบนั้นแล้ว
+
+อันสุดท้ายมันก็คือพวก bug, fix พวก path ต่างๆ
+
+

@@ -1,0 +1,65 @@
+ในบทนี้เราจะมา integrate MongoDB ที่สร้างไว้บน Cloud เข้ากับ application เล็กๆของเรา ใน local ที่เราเขียนภาษาโกขึ้นมา
+สิ่งที่เราจะเรียนรู้
+1.Setup MongoDB บน Cloud ใช้บน docker มันไม่ค่อยตื่นเต้นเท่าไหร่
+2.พอได้ database แล้วเราจะมา populate document ที่มีอยู่ใน local ขึ้นไปบน Cloud ประมาณ 40,000 กว่า record
+3.จากนั้นจะมาดูว่าเราสามารถ connect ไป database บน Cloud ตรงนั้นได้ด้วยวิธีไหนบ้าง ก็จะมีมากกว่า 1 อย่างที่เราจะมาทำกัน
+4.และเราจะมาใช้ official MongoDB Go’s Driver เข้าไป connect 
+5.แล้วก็ทำ CRUD Operations บน Cloud นั้น
+เหตุผลที่ต้องเป็น official MongoDB Go’s Driver จะพูดในวิดีโอถัดไป เราจะไม่ใช้ third party กันแล้ว พวก mgo 
+6.สุดท้ายแล้วสิ่งที่สำคัญเลยคือจะมาสร้างความคุ้นเคยกับ MongoDB documents
+ใน chapter นี้จะไม่สอนเขียน code อย่างเดียว มาสอนแค่ throw solution ให้ก็ไป runๆไป ผลลัพธ์ออกมาอย่างเดียวมันไม่จบ แต่ต้องการให้สามารถแก้ไขปัญหาในสิ่งที่ยังไม่เจอได้ในอนาคต พอเจอแล้วเราจะรู้วิธีการแก้ปัญหานั้นๆได้ยังไง
+
+Concept พื้นฐานของ MongoDB
+มันก็คือ database ชนิด NoSQL จะเก็บข้อมูลแบบ documents
+1.ไม่ต้องสร้าง schema ไว้ก่อน ถ้าเป็น RDB ก่อนที่เราจะทำอะไร เราต้องมาสร้าง table ก่อน มีกี่ colum data type ยังไงชนิดไหน
+2.ไม่ต้องสร้าง table ไว้รอ (table ใน Nosql จะเรียกว่า collection ในโลกของ MongoDB)
+
+อย่างตรงนี้เรามี database อันนึง ใน 1 database สามารถประกอบไปด้วยหลายๆ collection ยกตัวอย่างอันนี้เรามี collection อันนึงชื่อว่า collection1 ซึ่ง collection1 นี้ก็สามารถเก็บ documentถ้าใครมีพื้นฐานมาจาก RDB ตรง doc ก็จะเป็น row และ row ตรงนี้มันก็จะต้องเท่ากัน จะต้อง fix colum เลยเช่น id name surname telephone age blab la ทุกตัวทุก row มันก็จะมีเหมือนกัน ถ้าช่องไหนไม่มีก็จะเป็น null เป็นค่าว่าง แต่ว่าในนี้ไม่จำเป็น แต่ละ field จะมีต่าง field กัน document นึงอาจจะมี 10 filed doc นึงอาจจะมี 2 filed doc นึงจะมี 3 field ก็ได้หมด) 
+เช่นเดียวกัน database สามารถประกอบไปด้วยหลายๆ collection
+
+Database
+-	Collection1
+-  Document 2 field 
+- Document 3 field
+- Document 10 field
+-	Collection2
+-  Document 1 field 
+- Document 3 field
+- Document 10 field
+-	Collection3
+-  Document 2 field 
+- Document 5 field
+- Document 10 field
+
+
+ตัวอย่างนี้ เรามี database ชื่อว่า uncleBobDvd ในนั้นก็จะมี movie_initial แล้วในแต่ละ document ก็จะมี title rating runtime
+สิ่งที่เราจะทำต่อไปนี้คือ เราจะสร้าง database ขึ้นมา 3 ตัว primary อีก 2 ตัวเป็น secondary
+ทำพวก liplicate กัน เช่นถ้าตัว primary ตายอาจจะเกิดจาก network ล่มหรือว่าอะไร ตัว secondary ก็จะเข้ามา action ต่อ ซึ่งใน database พวกนี้เราก้จะมี database name ที่ชื่อว่า ncleBobDvd แล้วข้างในก็จะเป็น collection แบบนี้
+uncleBobDvd
+-	movie_intial
+- {
+“title” : “Carmencita”,
+“rating” : “NOT RATE”,
+“runtime” : “1 min”
+}
+- {
+“title” : “Blacksmith”,
+“rating” : “UN RATE”,
+“runtime” : “1 min”
+}
+- {
+“title” : “The Arrival”,
+“rating” : “ ”,
+“runtime” : “1 min”
+}
+ แบบนี้ที่เราจะใส่เข้าไป แล้วเราจะมาเขียน application ตัวนึง ใช้ official MongoDB Go’s Driver
+เมื่อก่อนจะมี third party ที่ implement แต่ว่าตอนนี้ ปจบ.นี้ MongoDB เขา office driver มาแล้ว เราจะไปใช้ตัวนั้น
+แล้วเราก็จะมาใช้ compass(คล้ายๆ expoler เป็น client ที่สามารถ connect เข้าไปดูข้อมูลใน database ได้ง่ายๆ แก้ไขได้ง่ายๆด้วย) มาต่อเข้า database แต่ว่า compass ก็ไม่เพียงพอหรอก เดี๋ยวเราจะต้องมาเขียนโปรแกรมของเรา perform operation ที่ซับซ้อนตาม business logic ของเรา
+MongoDB จริงถือว่าไม่ใช่เรื่องเล็กเท่าไหร่ การจะศึกษาให้เข้าใจ ให้เก่ง ให้มาสเตอร์ตรงนี้ มันต้องใช้เวลา ซึ่งเอามาเก็บไว้ในคอสร์นี้ไม่พอแน่นอน ดังนั้นเราจะโฟกัสแค่ในสิ่งที่เรารู้เพียงพอที่จะนำไปใช้เขียนโปรแกรมได้เท่านี้เอง
+
+(Application/Golang) mongo-driver (MongoDB Cluster(Atlast)) (primary,secondary,secondary)uncleBobDvd Compass
+
+คลิปนี้เราจะมาสร้าง 3 ตัวนี้กัน (primary,secondary,secondary)uncleBobDvd ไม่ต้องตกใจไม่มีอะไรยากเลย เข้ามาที่เว็ป 
+
+
+mongoimport --uri mongodb+srv://dbGoUser:dbGoUser@gocourse.kdrqc.mongodb.net/uncleBobDvd --collection movie_initial --type csv --file movies_initial.csv --headerline

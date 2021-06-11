@@ -1,0 +1,5 @@
+github.com/Tanwarat-Nat/quote v0.2.0/go.mod h1:d3ugj5bBORxJGYaVQHjwXwzMuHqBGrXPmjLNVKUaCSg=
+github.com/Tanwarat-Nat/quote v1.0.0 h1:jsAIoRv8u8QRa4gTHtSNXLwIOowuTHMzcQOHaUHKHeA=
+github.com/Tanwarat-Nat/quote v1.0.0/go.mod h1:d3ugj5bBORxJGYaVQHjwXwzMuHqBGrXPmjLNVKUaCSg=
+github.com/Tanwarat-Nat/quote/v2 v2.0.0 h1:ecjS4ynvnv74KVD5sOXwsGBrx2vrRZ7ThrLabdV39uE=
+github.com/Tanwarat-Nat/quote/v2 v2.0.0/go.mod h1:4igNC5DCWGWWCybONlvbS8zSDc09RvuJwli7BrIDDC4=

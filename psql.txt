@@ -1,0 +1,29 @@
+Server [localhost]:
+Database [postgres]:
+Port [5432]:
+Username [postgres]:
+Password for user postgres: postgres
+psql (13.3)
+Type "help" for help.
+
+\l : ดูฐานข้อมูลทั้งหมด
+\q > enter : ออก
+
+เวลามีปัญหา
+serch(รูปเเว่นขยาย) > services(รูปเฟือง) > postgresql-x64-13(status : running) > change status -> duble clik (stop/pause/resume)
+
+database จะรันแบบเซอวิสคอยรับบริการส่งผลลัพธ์กลับไปให้
+
+วิธีบอกวินโดวว่า path ในการค้นหาตัว utility ต่างๆของ postgres 
+copy : C:\Program Files\PostgreSQL\13\bin
+click ขวา This PC > properties > Advance system setting > enviroment variables > 
+เลือก path ที่ zone : user variables for lanovo > edit > new > paste (ในหน้านี้เป็น path ในการค้นหา command line)
+
+ใน commad prompt
+where psql : ดูว่า path psql ที่ใช้อยู่ตอนนี้อยู่ตรงไหน
+psql -U postgres -h localhost (-U <username> -h <hostจะบอกหรือไม่บอกก็ได้>)
+create database sample; > \l > ก็จะเจอ sample ในฐานข้อมูล > \c sample (ต้องการคอนเน็คไปที่ sample) -> sample=#
+postgres=# drop database sample;
+
+
+
